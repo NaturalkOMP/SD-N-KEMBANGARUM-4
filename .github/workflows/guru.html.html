@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Guru - Hasil Kuis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #2196F3 0%, #4CAF50 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        
+        .main-content {
+            padding: 30px;
+        }
+        
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            text-align: center;
+            border-top: 5px solid #2196F3;
+        }
+        
+        .stat-card:nth-child(2) { border-color: #4CAF50; }
+        .stat-card:nth-child(3) { border-color: #FF9800; }
+        .stat-card:nth-child(4) { border-color: #9C27B0; }
+        
+        .stat-number {
+            font-size: 48px;
+            font-weight: bold;
+            color: #2196F3;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card:nth-child(2) .stat-number { color: #4CAF50; }
+        .stat-card:nth-child(3) .stat-number { color: #FF9800; }
+        .stat-card:nth-child(4) .stat-number { color: #9C27B0; }
+        
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+            margin: 30px 0;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        
+        thead {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            color: white;
+        }
+        
+        th {
+            padding: 18px 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 15px;
+        }
+        
+        tbody tr {
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+        
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        td {
+            padding: 15px;
+            color: #333;
+        }
+        
+        .score-cell {
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .score-A { color: #4CAF50; }
+        .score-B { color: #FF9800; }
+        .score-C { color: #f44336; }
+        
+        /* Tombol Aksi */
+        .actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2196F3;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        
+        .empty-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        /* Responsif */
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn {
+                min-width: 100%;
+            }
+            
+            th, td {
+                padding: 12px 8px;
+                font-size: 14px;
+            }
+        }
+        
+        /* Auto-refresh */
+        .auto-refresh {
+            background: #E8F5E9;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .refresh-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #2E7D32;
+            font-weight: 500;
+        }
+        
+        .dot {
+            width: 10px;
+            height: 10px;
+            background: #4CAF50;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 DASHBOARD GURU</h1>
+            <div class="subtitle">Hasil Kuis Sistem Pernapasan Manusia | SDN Kembangarum</div>
+            <div class="subtitle" style="margin-top: 10px; font-size: 14px; opacity: 0.8;">
+                Data diperbarui otomatis setiap 10 detik
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <!-- Auto-refresh Info -->
+            <div class="auto-refresh">
+                <div class="refresh-info">
+                    <div class="dot"></div>
+                    <span>LIVE DATA - Data diperbarui otomatis</span>
+                </div>
+                <div style="color: #666; font-size: 14px;">
+                    Terakhir update: <span id="lastUpdate">-</span>
+                </div>
+            </div>
+            
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalStudents">0</div>
+                    <div class="stat-label">TOTAL SISWA</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="averageScore">0</div>
+                    <div class="stat-label">RATA-RATA NILAI</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="highestScore">0</div>
+                    <div class="stat-label">NILAI TERTINGGI</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="lowestScore">0</div>
+                    <div class="stat-label">NILAI TERENDAH</div>
+                </div>
+            </div>
+            
+            <!-- Loading State -->
+            <div id="loadingSection" class="loading">
+                <div class="spinner"></div>
+                <h3 style="color: #666; margin-top: 20px;">Memuat data siswa...</h3>
+            </div>
+            
+            <!-- Empty State -->
+            <div id="emptySection" class="empty-state" style="display: none;">
+                <div class="empty-icon">📭</div>
+                <h3 style="color: #666; margin-bottom: 15px;">Belum Ada Data Siswa</h3>
+                <p style="color: #888; margin-bottom: 25px;">
+                    Data akan muncul setelah siswa mengerjakan kuis.<br>
+                    Pastikan Anda sudah membagikan link kuis ke siswa.
+                </p>
+                <button class="btn btn-primary" onclick="window.open('index.html', '_blank')">
+                    🌐 Buka Halaman Kuis
+                </button>
+            </div>
+            
+            <!-- Table Section -->
+            <div id="tableSection" style="display: none;">
+                <div class="table-container">
+                    <table id="resultsTable">
+                        <thead>
+                            <tr>
+                                <th>NO</th>
+                                <th>NAMA SISWA</th>
+                                <th>KELAS</th>
+                                <th>ABSEN</th>
+                                <th>NILAI</th>
+                                <th>TANGGAL</th>
+                                <th>WAKTU</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsBody">
+                            <!-- Data akan dimuat di sini -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="refreshData()">
+                        🔄 Refresh Data
+                    </button>
+                    <button class="btn btn-success" onclick="exportToCSV()">
+                        📥 Download CSV
+                    </button>
+                    <button class="btn btn-warning" onclick="printData()">
+                        🖨️ Cetak Data
+                    </button>
+                    <button class="btn btn-danger" onclick="clearAllData()">
+                        🗑️ Hapus Semua Data
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Info Box -->
+            <div style="background: #E3F2FD; padding: 20px; border-radius: 10px; margin-top: 30px;">
+                <h4 style="color: #1976D2; margin-bottom: 15px;">💡 Petunjuk Penggunaan:</h4>
+                <ul style="color: #333; line-height: 1.8; padding-left: 20px;">
+                    <li>Data diperbarui <strong>otomatis setiap 10 detik</strong></li>
+                    <li><strong>Download CSV</strong> untuk menyimpan data di komputer</li>
+                    <li><strong>Hapus data</strong> hanya jika perlu, data akan hilang permanen</li>
+                    <li>Share link <strong>index.html</strong> ke siswa untuk mengerjakan kuis</li>
+                    <li>Dashboard ini hanya bisa diakses oleh guru</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== FUNGSI UTAMA ====================
+        
+        // Ambil data dari localStorage (data siswa)
+        function getStudentData() {
+            try {
+                const data = JSON.parse(localStorage.getItem('kuis_siswa') || '[]');
+                
+                // Jika tidak ada data di localStorage, coba ambil dari session
+                if (data.length === 0) {
+                    // Coba ambil dari sessionStorage atau cookie
+                    const sessionData = JSON.parse(sessionStorage.getItem('kuis_siswa') || '[]');
+                    return sessionData;
+                }
+                
+                return data;
+            } catch (error) {
+                console.error('Error mengambil data:', error);
+                return [];
+            }
+        }
+        
+        // Tampilkan data di tabel
+        function displayData() {
+            const data = getStudentData();
+            const loading = document.getElementById('loadingSection');
+            const empty = document.getElementById('emptySection');
+            const tableSection = document.getElementById('tableSection');
+            
+            // Update waktu terakhir
+            document.getElementById('lastUpdate').textContent = 
+                new Date().toLocaleTimeString('id-ID');
+            
+            // Cek jika tidak ada data
+            if (data.length === 0) {
+                loading.style.display = 'none';
+                empty.style.display = 'block';
+                tableSection.style.display = 'none';
+                return;
+            }
+            
+            // Sembunyikan loading dan empty, tampilkan tabel
+            loading.style.display = 'none';
+            empty.style.display = 'none';
+            tableSection.style.display = 'block';
+            
+            // Urutkan dari yang terbaru
+            data.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            
+            // Tampilkan di tabel
+            const tbody = document.getElementById('resultsBody');
+            tbody.innerHTML = '';
+            
+            data.forEach((student, index) => {
+                const row = tbody.insertRow();
+                
+                // Tentukan kelas untuk nilai
+                let scoreClass = 'score-A';
+                if (student.nilai < 70) scoreClass = 'score-B';
+                if (student.nilai < 50) scoreClass = 'score-C';
+                
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td><strong>${student.nama || '-'}</strong></td>
+                    <td>${student.kelas || '-'}</td>
+                    <td>${student.absen || '-'}</td>
+                    <td class="score-cell ${scoreClass}">${student.nilai || 0}</td>
+                    <td>${student.tanggal || '-'}</td>
+                    <td>${student.waktu || '-'}</td>
+                `;
+            });
+            
+            // Update statistik
+            updateStatistics(data);
+        }
+        
+        // Update statistik
+        function updateStatistics(data) {
+            if (data.length === 0) {
+                document.getElementById('totalStudents').textContent = '0';
+                document.getElementById('averageScore').textContent = '0';
+                document.getElementById('highestScore').textContent = '0';
+                document.getElementById('lowestScore').textContent = '0';
+                return;
+            }
+            
+            const total = data.length;
+            const scores = data.map(s => s.nilai || 0);
+            const average = Math.round(scores.reduce((a, b) => a + b, 0) / total);
+            const highest = Math.max(...scores);
+            const lowest = Math.min(...scores);
+            
+            document.getElementById('totalStudents').textContent = total;
+            document.getElementById('averageScore').textContent = average;
+            document.getElementById('highestScore').textContent = highest;
+            document.getElementById('lowestScore').textContent = lowest;
+        }
+        
+        // Refresh data
+        function refreshData() {
+            document.getElementById('loadingSection').style.display = 'block';
+            document.getElementById('emptySection').style.display = 'none';
+            document.getElementById('tableSection').style.display = 'none';
+            
+            // Simulasi loading
+            setTimeout(() => {
+                displayData();
+                showNotification('✅ Data diperbarui');
+            }, 500);
+        }
+        
+        // Export ke CSV
+        function exportToCSV() {
+            const data = getStudentData();
+            if (data.length === 0) {
+                showNotification('⚠️ Tidak ada data untuk diexport', 'warning');
+                return;
+            }
+            
+            let csv = 'No,Nama,Kelas,Absen,Nilai,Tanggal,Waktu\n';
+            data.forEach((student, index) => {
+                csv += `${index + 1},${student.nama || ''},${student.kelas || ''},${student.absen || ''},${student.nilai || ''},${student.tanggal || ''},${student.waktu || ''}\n`;
+            });
+            
+            // Buat file dan download
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `hasil-kuis-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            showNotification('📁 File CSV berhasil didownload');
+        }
+        
+        // Cetak data
+        function printData() {
+            const data = getStudentData();
+            if (data.length === 0) {
+                showNotification('⚠️ Tidak ada data untuk dicetak', 'warning');
+                return;
+            }
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Cetak Hasil Kuis</title>
+                    <style>
+                        body { font-family: Arial; padding: 20px; }
+                        h1 { color: #2196F3; text-align: center; }
+                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+                        th { background: #f5f5f5; }
+                        .footer { text-align: center; margin-top: 40px; color: #666; }
+                    </style>
+                </head>
+                <body>
+                    <h1>Hasil Kuis Sistem Pernapasan</h1>
+                    <h3 style="text-align: center;">SDN Kembangarum - Kelas 5</h3>
+                    <p style="text-align: center;">Dicetak pada: ${new Date().toLocaleString('id-ID')}</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Nama Siswa</th>
+                                <th>Kelas</th>
+                                <th>Absen</th>
+                                <th>Nilai</th>
+                                <th>Tanggal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.map((student, index) => `
+                                <tr>
+                                    <td>${index + 1}</td>
+                                    <td>${student.nama || '-'}</td>
+                                    <td>${student.kelas || '-'}</td>
+                                    <td>${student.absen || '-'}</td>
+                                    <td><strong>${student.nilai || 0}</strong></td>
+                                    <td>${student.tanggal || '-'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    <div class="footer">
+                        <p>Disusun oleh: Jamal, S.Pd</p>
+                        <p>Guru Kelas 5 SDN Kembangarum</p>
+                    </div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+        
+        // Hapus semua data
+        function clearAllData() {
+            if (!confirm('⚠️ YAKIN HAPUS SEMUA DATA?\nData akan hilang permanen dan tidak bisa dikembalikan.')) {
+                return;
+            }
+            
+            localStorage.removeItem('kuis_siswa');
+            sessionStorage.removeItem('kuis_siswa');
+            
+            showNotification('🗑️ Semua data telah dihapus', 'danger');
+            
+            // Refresh tampilan
+            setTimeout(() => {
+                document.getElementById('loadingSection').style.display = 'block';
+                document.getElementById('tableSection').style.display = 'none';
+                displayData();
+            }, 1000);
+        }
+        
+        // Notifikasi
+        function showNotification(message, type = 'success') {
+            // Hapus notifikasi sebelumnya
+            const oldNotif = document.querySelector('.notification');
+            if (oldNotif) oldNotif.remove();
+            
+            // Buat notifikasi baru
+            const notif = document.createElement('div');
+            notif.className = `notification ${type}`;
+            notif.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#4CAF50' : type === 'warning' ? '#FF9800' : '#f44336'};
+                color: white;
+                padding: 15px 25px;
+                border-radius: 10px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+            `;
+            notif.textContent = message;
+            
+            document.body.appendChild(notif);
+            
+            // Hapus otomatis setelah 3 detik
+            setTimeout(() => {
+                notif.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notif.remove(), 300);
+            }, 3000);
+            
+            // Tambahkan style animasi
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes slideOut {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(100%); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // ==================== INISIALISASI ====================
+        
+        // Load data saat halaman dibuka
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tampilkan data pertama kali
+            setTimeout(() => {
+                displayData();
+            }, 1000);
+            
+            // Auto-refresh setiap 10 detik
+            setInterval(() => {
+                displayData();
+            }, 10000);
+            
+            console.log('✅ Dashboard guru siap digunakan!');
+        });
+        
+        // Tambahkan tombol untuk buka halaman kuis
+        window.addEventListener('load', function() {
+            const actionsDiv = document.querySelector('.actions');
+            if (actionsDiv) {
+                const openQuizBtn = document.createElement('button');
+                openQuizBtn.className = 'btn btn-primary';
+                openQuizBtn.innerHTML = '🏠 Buka Halaman Kuis';
+                openQuizBtn.onclick = () => window.open('index.html', '_blank');
+                actionsDiv.insertBefore(openQuizBtn, actionsDiv.firstChild);
+            }
+        });
+    </script>
+</body>
+</html>
